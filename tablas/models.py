@@ -2,22 +2,22 @@ from django.db import models
 
 # Create your models here.
 class Ubicacion(models.Model): 
-    Ubicacion= models. CharField(max_length=20)
+    ubicacion= models. CharField(max_length=20)
 
 class Tipo (models.Model): 
-    Tipo=  models.CharField(max_length=20)
+    tipo=  models.CharField(max_length=20)
 
 class Estado (models.Model):
-    Estado= models.CharField(max_length=20)
+    estado= models.CharField(max_length=20)
 
 class Producto (models.Model):
-    Nombre= models.CharField(max_length=20)
-    IdTipo= models.ForeignKey(Tipo,on_delete=models.CASCADE)
-    IdUbicacion= models.ForeignKey(Ubicacion,on_delete=models.CASCADE)
+    nombre= models.CharField(max_length=20)
+    tipo= models.ForeignKey(Tipo,on_delete=models.CASCADE)
+    ubicacion= models.ForeignKey(Ubicacion,on_delete=models.CASCADE)
 
 class Lote (models. Model):
-    IdProducto= models.ForeignKey(Producto, on_delete=models.CASCADE)
-    FechaEntrega= models.DateField(null=True)
-    IdEstado= models.ForeignKey(Estado,on_delete=models.CASCADE)
-    Cantidad= models.IntegerField()
-    FechaCaducidad= models.DateField(null=True)
+    producto= models.ForeignKey(Producto, on_delete=models.CASCADE)
+    fechaentrega= models.DateField(null=True,blank=True)
+    estado= models.ForeignKey(Estado,on_delete=models.CASCADE)
+    cantidad= models.IntegerField()
+    fechacaducidad= models.DateField(null=True,blank=True)
