@@ -59,4 +59,5 @@ class LoteViewSet(viewsets.ModelViewSet):
 
 class Informe(viewsets.ViewSet):
     def informe():
+        
         return False
