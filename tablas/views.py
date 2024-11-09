@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from django.db.models import Count,Sum
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Producto, Lote
@@ -58,6 +59,31 @@ class LoteViewSet(viewsets.ModelViewSet):
         return Response({'status': 'Lote eliminado exitosamente'}, status=status.HTTP_204_NO_CONTENT)
 
 class Informe(viewsets.ViewSet):
-    def informe():
-        
-        return False
+    def obtener_producto_con_mas_lotes():
+        # Agrupa por 'producto', cuenta los lotes y ordena en orden descendente
+        resultado = Lote.objects.values('producto').annotate(total_lotes=Count('producto')).order_by('-total_lotes')
+        # Obtener el producto con el mayor número de lotes
+        if resultado:
+            producto_mas_lotes = resultado[0]
+            return producto_mas_lotes
+        return None
+    def obtener_ubicacion_con_mas_productos():
+        # Agrupa por 'ubicacion', cuenta los productos y ordena en orden descendente
+        resultado = Producto.objects.values('ubicacion').annotate(total_productos=Count('ubicacion')).order_by('-total_productos')
+        # Obtener la ubicación con el mayor número de productos
+        if resultado:
+            ubicacion_mas_productos = resultado[0]
+            return ubicacion_mas_productos
+        return None
+    def obtener_proveedor_con_mas_lotes():
+        # Agrupa por 'proveedor', cuenta los lotes y ordena en orden descendente
+        resultado = Lote.objects.values('proveedor').annotate(total_lotes=Count('proveedor')).order_by('-total_lotes')
+        # Obtener el proveedor con el mayor número de lotes
+        if resultado:
+            proveedor_mas_lotes = resultado[0]
+            return proveedor_mas_lotes
+        return None
+    def obtener_total_cantidad_por_producto():
+        # Agrupa por 'producto' y suma las cantidades de cada grupo
+        resultado = Lote.objects.values('producto').annotate(total_cantidad=Sum('cantidad')).order_by('-total_cantidad')      
+        return resultado

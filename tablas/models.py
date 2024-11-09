@@ -29,6 +29,7 @@ class Lote (models. Model):
     estado= models.ForeignKey(Estado,on_delete=models.CASCADE)
     cantidad= models.IntegerField()
     fechacaducidad= models.DateField(null=True,blank=True)
-    proveedor= models.CharField(max_length=20)
+    proveedor= models.CharField(max_length=20,default='')
+
     def __str__(self):
         return self.producto
