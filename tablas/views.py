@@ -1,5 +1,8 @@
 from rest_framework import viewsets
-from django.db.models import Count,Sum
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views import View
+from django.db.models import Count,Sum,F
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Producto, Lote
@@ -58,32 +61,76 @@ class LoteViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response({'status': 'Lote eliminado exitosamente'}, status=status.HTTP_204_NO_CONTENT)
 
-class Informe(viewsets.ViewSet):
-    def obtener_producto_con_mas_lotes():
+class ObtenerProductoView(View):
+    def get(self, request):
         # Agrupa por 'producto', cuenta los lotes y ordena en orden descendente
         resultado = Lote.objects.values('producto').annotate(total_lotes=Count('producto')).order_by('-total_lotes')
         # Obtener el producto con el mayor número de lotes
         if resultado:
             producto_mas_lotes = resultado[0]
-            return producto_mas_lotes
-        return None
-    def obtener_ubicacion_con_mas_productos():
+            return JsonResponse({'producto_mas_lotes': producto_mas_lotes}, safe=False)
+        return JsonResponse({'message': 'No hay datos disponibles'}, status=404)
+
+class ObtenerUbicacionView(View):
+    def get(self, request):
         # Agrupa por 'ubicacion', cuenta los productos y ordena en orden descendente
         resultado = Producto.objects.values('ubicacion').annotate(total_productos=Count('ubicacion')).order_by('-total_productos')
         # Obtener la ubicación con el mayor número de productos
         if resultado:
             ubicacion_mas_productos = resultado[0]
-            return ubicacion_mas_productos
-        return None
-    def obtener_proveedor_con_mas_lotes():
+            return JsonResponse({'ubicacion_mas_productos': ubicacion_mas_productos}, safe=False)
+        return JsonResponse({'message': 'No hay datos disponibles'}, status=404)
+
+class ObtenerProveedorView(View):
+    def get(self, request):
         # Agrupa por 'proveedor', cuenta los lotes y ordena en orden descendente
         resultado = Lote.objects.values('proveedor').annotate(total_lotes=Count('proveedor')).order_by('-total_lotes')
         # Obtener el proveedor con el mayor número de lotes
         if resultado:
             proveedor_mas_lotes = resultado[0]
-            return proveedor_mas_lotes
-        return None
-    def obtener_total_cantidad_por_producto():
+            return JsonResponse({'proveedor_mas_lotes': proveedor_mas_lotes}, safe=False)
+        return JsonResponse({'message': 'No hay datos disponibles'}, status=404)
+
+class ObtenerCantidadTotalPorProductoView(View):
+    def get(self, request):
         # Agrupa por 'producto' y suma las cantidades de cada grupo
-        resultado = Lote.objects.values('producto').annotate(total_cantidad=Sum('cantidad')).order_by('-total_cantidad')      
-        return resultado
+        resultado = Lote.objects.values('producto').annotate(total_cantidad=Sum('cantidad')).order_by('-total_cantidad')
+        if resultado:
+            return JsonResponse(list(resultado), safe=False)
+        return JsonResponse({'message': 'No hay datos disponibles'}, status=404)
+    
+class LotesProximosACaducarView(View):
+    def get(self, request):
+        # Obtener la fecha actual
+        fecha_actual = timezone.now().date()
+        # Filtrar los lotes cuya fecha de caducidad es mayor o igual a hoy, y ordenar por fecha de caducidad ascendente
+        resultado = (Lote.objects.filter(fechacaducidad__gte=fecha_actual).order_by('fechacaducidad')[:10])       
+        # Convertir el resultado a una lista de diccionarios para enviarlo en formato JSON
+        lotes = list(resultado.values(
+            'id', 
+            'producto',  
+            'fechaentrega', 
+            'estado',     
+            'cantidad', 
+            'fechacaducidad', 
+            'proveedor'
+        ))
+        if lotes:
+            return JsonResponse(lotes, safe=False)
+        return JsonResponse({'message': 'No hay lotes proximos a caducar'}, status=404)
+
+class LoteMasRecienteView(View):
+    def get(self, request):
+        # Obtener el lote más reciente basado en la fecha de entrega
+        lote_mas_reciente = Lote.objects.order_by('-fechaentrega').first()
+        if lote_mas_reciente:
+            # Preparar los datos para el JSON de respuesta
+            datos = {
+                'lote_id': lote_mas_reciente.id,
+                'producto_id': lote_mas_reciente.producto.id,
+                'producto_nombre': lote_mas_reciente.producto.nombre,  # Ajusta 'nombre' según el campo en Producto
+                'fecha_entrega': lote_mas_reciente.fechaentrega,
+            }
+            return JsonResponse(datos)
+        # Si no hay lotes, se envía un mensaje
+        return JsonResponse({'message': 'No se encontraron lotes'}, status=404)
