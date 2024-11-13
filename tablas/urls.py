@@ -13,7 +13,7 @@ urlpatterns = [
     path('productolotes/', ObtenerProductoView.as_view(), name='productolotes'),
     path('ubicacionproductos/', ObtenerUbicacionView.as_view(), name='ubicacionproductos'),
     path('proveedorlotes/', ObtenerProveedorView.as_view(), name='proveedorlotes'),
-    path('cantidad-total/', ObtenerCantidadTotalPorProductoView.as_view(), name='cantidad_total'),
+    path('cantidadtotal/', ObtenerCantidadTotalPorProductoView.as_view(), name='cantidadtotal'),
     path('lotescaducar/', LotesProximosACaducarView.as_view(), name='lotescaducar'),
     path('lotereciente/', LoteMasRecienteView.as_view(), name='lotereciente'),
 ]
