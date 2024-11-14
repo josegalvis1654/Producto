@@ -1,11 +1,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProductoViewSet, LoteViewSet, ObtenerProductoView,ObtenerUbicacionView,ObtenerProveedorView,ObtenerCantidadTotalPorProductoView,LotesProximosACaducarView,LoteMasRecienteView
+from .views import ProductoViewSet, LoteViewSet, ObtenerProductoView,ObtenerUbicacionView,ObtenerProveedorView,ObtenerCantidadTotalPorProductoView,LotesProximosACaducarView,LoteMasRecienteView,UbicacionViewSet,TipoViewSet,EstadoViewSet
 
 # Crear el enrutador y registrar los ViewSets de Producto y Lote
 router = DefaultRouter()
 router.register(r'productos', ProductoViewSet)
 router.register(r'lotes', LoteViewSet)
+router.register(r'ubicacion', UbicacionViewSet)
+router.register(r'estado', EstadoViewSet)
+router.register(r'tipo', TipoViewSet)
+
 
 # Incluir las rutas registradas en urlpatterns
 urlpatterns = [

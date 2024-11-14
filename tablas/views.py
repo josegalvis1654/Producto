@@ -5,8 +5,8 @@ from django.views import View
 from django.db.models import Count,Sum,F
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Producto, Lote
-from .serializers import ProductoSerializer, LoteSerializer
+from .models import Producto, Lote, Ubicacion, Estado, Tipo
+from .serializers import ProductoSerializer, LoteSerializer, UbicacionSerializer, TipoSerializer, EstadoSerializer
 
 
 class ProductoViewSet(viewsets.ModelViewSet):
@@ -60,6 +60,18 @@ class LoteViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({'status': 'Lote eliminado exitosamente'}, status=status.HTTP_204_NO_CONTENT)
+
+class UbicacionViewSet(viewsets.ModelViewSet):
+    queryset = Ubicacion.objects.all()  # Define el conjunto de datos de productos
+    serializer_class = UbicacionSerializer  # Define el serializador a usar
+
+class TipoViewSet(viewsets.ModelViewSet):
+    queryset = Tipo.objects.all()  # Define el conjunto de datos de productos
+    serializer_class = TipoSerializer  # Define el serializador a usar
+
+class EstadoViewSet(viewsets.ModelViewSet):
+    queryset = Estado.objects.all()  # Define el conjunto de datos de productos
+    serializer_class = EstadoSerializer  # Define el serializador a usar
 
 class ObtenerProductoView(View):
     def get(self, request):
