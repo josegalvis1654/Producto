@@ -76,7 +76,7 @@ class EstadoViewSet(viewsets.ModelViewSet):
 class ObtenerProductoView(View):
     def get(self, request):
         # Agrupa por 'producto', cuenta los lotes y ordena en orden descendente
-        resultado = Lote.objects.values('producto').annotate(total_lotes=Count('producto')).order_by('-total_lotes')
+        resultado = Lote.objects.values('producto__nombre').annotate(total_lotes=Count('producto')).order_by('-total_lotes')
         # Obtener el producto con el mayor número de lotes
         if resultado:
             producto_mas_lotes = resultado[0]
@@ -86,7 +86,7 @@ class ObtenerProductoView(View):
 class ObtenerUbicacionView(View):
     def get(self, request):
         # Agrupa por 'ubicacion', cuenta los productos y ordena en orden descendente
-        resultado = Producto.objects.values('ubicacion').annotate(total_productos=Count('ubicacion')).order_by('-total_productos')
+        resultado = Producto.objects.values('ubicacion__ubicacion').annotate(total_productos=Count('ubicacion')).order_by('-total_productos')
         # Obtener la ubicación con el mayor número de productos
         if resultado:
             ubicacion_mas_productos = resultado[0]
