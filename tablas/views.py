@@ -106,7 +106,7 @@ class ObtenerProveedorView(View):
 class ObtenerCantidadTotalPorProductoView(View):
     def get(self, request):
         # Agrupa por 'producto' y suma las cantidades de cada grupo
-        resultado = Lote.objects.values('producto').annotate(total_cantidad=Sum('cantidad')).order_by('-total_cantidad')
+        resultado = Lote.objects.values('producto__nombre').annotate(total_cantidad=Sum('cantidad')).order_by('-total_cantidad')
         if resultado:
             return JsonResponse(list(resultado), safe=False)
         return JsonResponse({'message': 'No hay datos disponibles'}, status=404)
@@ -120,7 +120,7 @@ class LotesProximosACaducarView(View):
         # Convertir el resultado a una lista de diccionarios para enviarlo en formato JSON
         lotes = list(resultado.values(
             'id', 
-            'producto',  
+            'producto__nombre',  
             'fechaentrega', 
             'estado',     
             'cantidad', 
@@ -134,15 +134,8 @@ class LotesProximosACaducarView(View):
 class LoteMasRecienteView(View):
     def get(self, request):
         # Obtener el lote más reciente basado en la fecha de entrega
-        lote_mas_reciente = Lote.objects.order_by('-fechaentrega').first()
+        lote_mas_reciente = Lote.objects.order_by('-fechaentrega').first().values('producto__nombre','fechaentrega')
         if lote_mas_reciente:
-            # Preparar los datos para el JSON de respuesta
-            datos = {
-                'lote_id': lote_mas_reciente.id,
-                'producto_id': lote_mas_reciente.producto.id,
-                'producto_nombre': lote_mas_reciente.producto.nombre,  # Ajusta 'nombre' según el campo en Producto
-                'fecha_entrega': lote_mas_reciente.fechaentrega,
-            }
-            return JsonResponse(datos)
+            return JsonResponse(lote_mas_reciente)
         # Si no hay lotes, se envía un mensaje
         return JsonResponse({'message': 'No se encontraron lotes'}, status=404)
