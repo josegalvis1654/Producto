@@ -108,7 +108,7 @@ class ObtenerProveedorView(View):
 class ObtenerCantidadTotalPorProductoView(View):
     def get(self, request):
         # Agrupa por 'producto' y suma las cantidades de cada grupo
-        resultado = Lote.objects.values('producto__nombre').annotate(total_cantidad=Sum('cantidad')).order_by('-total_cantidad')
+        resultado = Lote.objects.exclude(fechaentrega__isnull=True).values('producto__nombre').annotate(total_cantidad=Sum('cantidad')).order_by('-total_cantidad')
         if resultado:
             return JsonResponse(list(resultado), safe=False)
         return JsonResponse({'message': 'No hay datos disponibles'}, status=404)
