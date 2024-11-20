@@ -134,7 +134,7 @@ class LotesProximosACaducarView(View):
 class LoteMasRecienteView(View):
     def get(self, request):
         # Obtener el lote más reciente basado en la fecha de entrega
-        lote_mas_reciente = Lote.objects.order_by('-fechaentrega').first().values('producto__nombre','fechaentrega')
+        lote_mas_reciente = Lote.objects.order_by('-fechaentrega').values('producto__nombre','fechaentrega').first()
         if lote_mas_reciente:
             return JsonResponse(lote_mas_reciente)
         # Si no hay lotes, se envía un mensaje
