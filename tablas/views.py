@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Producto, Lote, Ubicacion, Estado, Tipo
 from .serializers import ProductoSerializer, LoteSerializer, UbicacionSerializer, TipoSerializer, EstadoSerializer
+import requests
 
 
 class ProductoViewSet(viewsets.ModelViewSet):
@@ -97,12 +98,41 @@ class ObtenerUbicacionView(View):
 
 class ObtenerProveedorView(View):
     def get(self, request):
-        # Agrupa por 'proveedor', cuenta los lotes y ordena en orden descendente
-        resultado = Lote.objects.values('proveedor').annotate(total_lotes=Count('proveedor')).order_by('-total_lotes')
-        # Obtener el proveedor con el mayor número de lotes
-        if resultado:
-            proveedor_mas_lotes = resultado[0]
-            return JsonResponse({'proveedor_mas_lotes': proveedor_mas_lotes}, safe=False)
+        # Agrupa por 'proveedor', cuenta los lotes y encuentra el máximo número de lotes
+        resultado = Lote.objects.values('proveedor').annotate(total_lotes=Count('proveedor'))
+        max_lotes = resultado.aggregate(max_lotes=Max('total_lotes'))['max_lotes']        
+        # Filtra todos los proveedores que tienen el número máximo de lotes
+        proveedores_empate = resultado.filter(total_lotes=max_lotes)      
+        # Consultar nombres de proveedores desde el servicio externo
+        nombres_proveedores = []
+        for proveedor in proveedores_empate:
+            proveedor_id = int(proveedor['proveedor'])  # Asume que es un ID o identificador del proveedor
+            try:
+                # Realiza la solicitud al servicio de Proveedores en el puerto 8002
+                response = requests.get(f'http://localhost:8002/api/proveedores/maxlotes/{proveedor_id}/')
+                print(f"Status Code: {response.status_code}")
+                print(f"Response Content: {response.text}")               
+                if response.status_code == 200:
+                    # Procesa el JSON recibido del servicio externo
+                    proveedor_data = response.json()  # Asegúrate que 'nombre' y 'total_lotes' están en el JSON
+                    nombres_proveedores.append({
+                        'nombre': proveedor_data.get('razon_social', 'Desconocido'),
+                        'total_lotes': proveedor['total_lotes']
+                    })
+                else:
+                    nombres_proveedores.append({
+                        'nombre': 'No disponible',
+                        'total_lotes': proveedor['total_lotes']
+                    })
+            except requests.RequestException:
+                # Manejo de errores en la solicitud HTTP
+                nombres_proveedores.append({
+                    'nombre': 'Error al consultar',
+                    'total_lotes': proveedor['total_lotes']
+                })      
+        # Devuelve el JSON con los datos de los proveedores empatados
+        if nombres_proveedores:
+            return JsonResponse({'proveedores': nombres_proveedores}, safe=False)
         return JsonResponse({'message': 'No hay datos disponibles'}, status=404)
 
 class ObtenerCantidadTotalPorProductoView(View):
